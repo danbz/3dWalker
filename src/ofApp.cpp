@@ -60,6 +60,7 @@ void ofApp::draw(){
     ofPopMatrix();
     cam.end(); // end using our easyCam object
     
+    ofSetColor(150, 150, 150);
     if (b_drawGui){ // check if we should show the onscreen gui/text
         ofDrawBitmapString(" 'w' to toggle walks, 'r' to autoRotate, 'f' fullscreen, 'g' hide text\nfps: " + ofToString(ofGetFrameRate())  + "\niteration number "+ ofToString(walkers[1].steps.size()), 10, 10);
     }
