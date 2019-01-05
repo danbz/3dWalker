@@ -7,5 +7,7 @@ vimeo.com/277969701
 
 http://buzzo.com/making-a-time-machine/
 
+![screenshot](3d-walker.png)
+
 
 
