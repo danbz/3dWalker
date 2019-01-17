@@ -20,6 +20,7 @@ public:
     ofColor walkerColor;
     vector<ofVec3f> steps;
     vector<int> lineWidth;
+    ofMesh mesh;
     walker(); // constructor
     ~walker(); // destructor
     void addStagger();
