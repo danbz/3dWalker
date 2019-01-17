@@ -7,6 +7,9 @@
  dan@buzzo.com
  http://buzzo.com
  https://github.com/danbz
+ 
+ // branch mesh
+ // uses mesh triangles to generate walker drawpaths
  */
 
 //--------------------------------------------------------------
