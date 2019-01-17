@@ -50,11 +50,11 @@ void ofApp::draw(){
     ofEnableDepthTest();
     ofEnableBlendMode(OF_BLENDMODE_ALPHA);
     ofColor wfColor(50,50,50,255);
+   // light.enable();
+
     depthOfField.begin();
     
-    
     cam.begin(); // begin using our easyCam objectfor 3D viewing
-    // light.enable();
     ofPushMatrix();
     ofRotateYDeg(rotAngle);
     for (int i=0; i<walkers.size();i++){ // iterate though all the values in our vector of steps/points
@@ -65,11 +65,11 @@ void ofApp::draw(){
         walkers[i].mesh.drawWireframe();
     }
     ofPopMatrix();
-    // light.disable();
     cam.end(); // end using our easyCam object
     
     depthOfField.end();
-    
+   // light.disable();
+
     if(ofGetKeyPressed(' ')){
         depthOfField.drawFocusAssist(0, 0);
     }
@@ -203,7 +203,7 @@ void walker::addStagger(){
     newStep += lastStep;
     
     steps.push_back(newStep); // add a new step to the end of our vector of steps
-    lineWidth.push_back(ofRandom(maxLineWidth));
+    lineWidth.push_back( ofNoise(randomKey +  ofGetElapsedTimef() ) * maxLineWidth);
     
     //   mesh based line draw - elements from mouse draw oF example
     //get the direction from one to the next.
@@ -221,7 +221,7 @@ void walker::addStagger(){
     ofVec3f toTheLeft = unitDirection.getRotated(-90, ofVec3f(0,0,1));
     ofVec3f toTheRight = unitDirection.getRotated(90, ofVec3f(0,0,1));
     
-    float thickness = ofNoise(lastStep.x) * maxLineWidth;
+    float thickness = ofNoise(randomKey +  ofGetElapsedTimef() * twistiness) * maxLineWidth;
     //calculate the points to the left and to the right
     //by extending the current point in the direction of left/right by the length
     ofVec3f leftPoint = lastStep+toTheLeft*thickness;
