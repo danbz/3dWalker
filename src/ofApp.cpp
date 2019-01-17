@@ -14,7 +14,7 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    numOfWalkers = 1;
+    numOfWalkers = 5;
     b_drawGui = true; // BOOLEAN (on or off) variable to indicate whether or not to show the gui display
     ofSetBackgroundColor(0, 0, 0);
     b_autoRotate = b_addstagger =  false;
@@ -125,11 +125,11 @@ void ofApp::mouseReleased(int x, int y, int button){
 walker::walker(){ // constructor
     ofVec3f new3dpoint(0,0,0);
     steps.push_back(new3dpoint);
-    staggerSize =2; // set how far to stagger when we add staggers to the walk of points
+    staggerSize =20; // set how far to stagger when we add staggers to the walk of points
     verticalMotion = 0.0;
-    maxLineWidth =40;
+    maxLineWidth =10;
     lineWidth.push_back(5);
-    walkerColor = ofColor(ofRandom(255), ofRandom(255), ofRandom(255), 50);
+    walkerColor = ofColor(ofRandom(255), ofRandom(255), ofRandom(255), 200);
     
     mesh.setMode(OF_PRIMITIVE_TRIANGLE_STRIP);
 
@@ -174,8 +174,8 @@ void walker::addStagger(){
         //use the map function to determine the distance.
         //the longer the distance, the narrower the line.
         //this makes it look a bit like brush strokes
-        float thickness = ofMap(distance, 0, 60, 20, 2, true);
-        
+       // float thickness = ofMap(distance, 0, 60, 10, 2, true);
+        float thickness = ofRandom(maxLineWidth);
         //calculate the points to the left and to the right
         //by extending the current point in the direction of left/right by the length
         ofVec3f leftPoint = lastStep+toTheLeft*thickness;
