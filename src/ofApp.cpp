@@ -14,21 +14,19 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    numOfWalkers = 5;
-    b_drawGui = true; // BOOLEAN (on or off) variable to indicate whether or not to show the gui display
+    numOfWalkers = 12;
+    b_drawGui = true; // boolean variable to indicate whether or not to show the gui display
     ofSetBackgroundColor(0, 0, 0);
     b_autoRotate = b_addstagger =  false;
     rotAngle = 0.0;
     ofSetFrameRate(120);
     
-    //ofSetLineWidth(3);
     for (int i=0; i<numOfWalkers;i++){
-        walker newWalker; // create a walker and push into our vector of 12 walkers
+        walker newWalker; // create a walker and push into our vector of walkers
         walkers.push_back(newWalker);
     }
-    
+
     // set DOF parameters
-    
     depthOfField.setup(ofGetWidth(), ofGetHeight());
     focalDist = 200;
     focalRange = 200;
@@ -162,14 +160,15 @@ walker::walker(){ // constructor
     ofVec3f new3dpoint(ofRandom(-staggerSize, staggerSize),ofRandom(-staggerSize, staggerSize),ofRandom(-staggerSize, staggerSize));
     steps.push_back(new3dpoint);
     verticalMotion = 0.0f;
-    maxLineWidth =20;
+    maxLineWidth =40;
     lineWidth.push_back(5);
     color = ofColor(ofRandom(255), ofRandom(255), ofRandom(255), 100);
     mesh.setMode(OF_PRIMITIVE_TRIANGLE_STRIP);
     // mesh.setMode(OF_PRIMITIVE_TRIANGLES);
-    randomKey = ofRandom( ofGetElapsedTimef() );
+    randomKey = ofRandom( 1000 );
+    twistiness = 3; // scale for step through perlin noise space - 0.1-5.0 is good, more = more twisty
+
     // for building rings
-    
     pie = 3.14159;
     tubeMeshRes = 36;
     radius = 40.0;
@@ -187,15 +186,16 @@ walker::~walker(){
 void walker::addStagger(){
     // generate a new small step/stagger that is within +/- our staggerSize distance of the last step
     ofVec3f lastStep = steps[steps.size()-1];
+    ofVec3f newStep;
     
     // stochastic random walk
-    //ofVec3f newStep(lastStep.x + ofRandom(-staggerSize, staggerSize), lastStep.y + ofRandom(-staggerSize, staggerSize), lastStep.z + ofRandom(-staggerSize, staggerSize  ) + verticalMotion ); // make a new vec2f object and add x,y, z value to it + vector size to give passage in time direction
+    // newStep(lastStep.x + ofRandom(-staggerSize, staggerSize), lastStep.y + ofRandom(-staggerSize, staggerSize), lastStep.z + ofRandom(-staggerSize, staggerSize  ) + verticalMotion ); // make a new vec2f object and add x,y, z value to it + vector size to give passage in time direction
     
     // perlin noise walk
-    ofVec3f newStep(lastStep.x + (ofNoise(lastStep.x)-0.5f) * staggerSize, lastStep.y + (ofNoise(lastStep.y)-0.5f) * staggerSize, lastStep.z + (ofNoise(lastStep.z)-0.5f + verticalMotion)*staggerSize ); // make a new vec2f object and add x,y, z value to it + vector size to give passage in time direction
+    // newStep(lastStep.x + (ofNoise(lastStep.x)-0.5f) * staggerSize, lastStep.y + (ofNoise(lastStep.y)-0.5f) * staggerSize, lastStep.z + (ofNoise(lastStep.z)-0.5f + verticalMotion)*staggerSize ); // make a new vec2f object and add x,y, z value to it + vector size to give passage in time direction
     
-    // time noise - generate a noisy 3d position over time
-    float t = randomKey + ( ofGetElapsedTimef()) * 5;
+    // time noise walk - generate a noisy 3d position over time
+    float t = randomKey + ( ofGetElapsedTimef()) * twistiness;
     newStep.x = ofSignedNoise(t, 0, 0);
     newStep.y = ofSignedNoise(0, t, 0);
     newStep.z = ofSignedNoise(0, 0, t);
@@ -232,8 +232,11 @@ void walker::addStagger(){
     mesh.addVertex(ofVec3f(leftPoint.x, leftPoint.y, leftPoint.z));
     mesh.addVertex(ofVec3f(rightPoint.x, rightPoint.y, rightPoint.z));
     
-    
-    
+//    if (mesh.getVertices().size() >500){ // limit the length of a walker line to 500 points
+//        mesh.removeVertex(0);
+//        mesh.removeVertex(0);
+//    }
+   
 }
 
 void walker::addRing() {
@@ -294,7 +297,6 @@ void walker::triangulateMesh(  ){
     int index =0;
     ofVec3f v3, v3b;
     
-    
     for (int y = 0; y<height-step-1; y+= step){ // triangulate mesh
         for (int x=0; x<width-step-1; x+= step){
             v3.set(0,0,0);
@@ -315,5 +317,4 @@ void walker::triangulateMesh(  ){
             // }
         }
     }
-    
 }
