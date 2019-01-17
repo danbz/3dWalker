@@ -26,6 +26,12 @@ void ofApp::setup(){
         walker newWalker; // create a walker and push into our vector of 12 walkers
         walkers.push_back(newWalker);
     }
+    
+    // set DOF parameters
+
+    depthOfField.setup(ofGetWidth(), ofGetHeight());
+    focalDist = 200;
+    focalRange = 200;
 }
 
 //--------------------------------------------------------------
@@ -45,6 +51,10 @@ void ofApp::draw(){
     ofVec3f curStep, prevStep(0.0,0.0,0.0);
     ofEnableDepthTest();
     ofEnableBlendMode(OF_BLENDMODE_ALPHA);
+    
+    depthOfField.begin();
+
+    
     cam.begin(); // begin using our easyCam objectfor 3D viewing
     // light.enable();
     ofPushMatrix();
@@ -56,6 +66,15 @@ void ofApp::draw(){
     ofPopMatrix();
     // light.disable();
     cam.end(); // end using our easyCam object
+    
+    depthOfField.end();
+    
+    if(ofGetKeyPressed(' ')){
+        depthOfField.drawFocusAssist(0, 0);
+    }
+    else{
+        depthOfField.getFbo().draw(0, 0);
+    }
     
     ofSetColor(150, 150, 150);
     if (b_drawGui){ // check if we should show the onscreen gui/text
@@ -79,11 +98,33 @@ void ofApp::keyPressed(int key){
             
         case 'f':
             ofToggleFullscreen(); // toggle full screen display
+            depthOfField.setup(ofGetWidth(), ofGetHeight());
+
             break;
             
         case 'g':
             b_drawGui = !b_drawGui; //toggle the guid overlay on and off
             break;
+        case OF_KEY_UP:
+            focalDist +=10;
+            depthOfField.setFocalDistance(focalDist);
+            break;
+            
+        case OF_KEY_DOWN:
+            if (focalDist>10) focalDist -=10;
+            depthOfField.setFocalDistance(focalDist);
+            break;
+            
+        case OF_KEY_RIGHT:
+            focalRange+=10;
+            depthOfField.setFocalRange( focalRange );
+            break;
+            
+        case OF_KEY_LEFT:
+            if (focalRange>10) focalRange-=10;
+            depthOfField.setFocalRange( focalRange );
+            break;
+            
     }
 }
 

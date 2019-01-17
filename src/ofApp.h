@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
+#include "ofxDOF.h"
 
 
 /*
@@ -46,5 +47,8 @@ public:
     bool b_drawGui, b_addstagger, b_autoRotate;
     ofEasyCam cam;
     ofLight light;
+    
+    int focalDist, focalRange;
+    ofxDOF depthOfField;
 };
 
