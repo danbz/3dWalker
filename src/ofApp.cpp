@@ -14,7 +14,7 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    numOfWalkers = 5;
+    numOfWalkers = 1;
     b_drawGui = true; // BOOLEAN (on or off) variable to indicate whether or not to show the gui display
     ofSetBackgroundColor(0, 0, 0);
     b_autoRotate = b_addstagger =  false;
@@ -51,7 +51,7 @@ void ofApp::draw(){
     ofVec3f curStep, prevStep(0.0,0.0,0.0);
     ofEnableDepthTest();
     ofEnableBlendMode(OF_BLENDMODE_ALPHA);
-    
+    ofColor wfColor(50,50,50,255);
     depthOfField.begin();
 
     
@@ -62,6 +62,9 @@ void ofApp::draw(){
     for (int i=0; i<walkers.size();i++){ // iterate though all the values in our vector of steps/points
         ofSetColor(walkers[i].walkerColor);
         walkers[i].mesh.draw();
+        
+        ofSetColor(walkers[i].walkerColor + wfColor);
+        walkers[i].mesh.drawWireframe();
     }
     ofPopMatrix();
     // light.disable();
@@ -78,7 +81,7 @@ void ofApp::draw(){
     
     ofSetColor(150, 150, 150);
     if (b_drawGui){ // check if we should show the onscreen gui/text
-        ofDrawBitmapString(" 'w' to toggle walks, 'r' to autoRotate, 'f' fullscreen, 'g' hide text\nfps: " + ofToString(ofGetFrameRate())  + "\niteration number "+ ofToString(walkers[1].steps.size()), 10, 10);
+        ofDrawBitmapString(" 'w' to toggle walks, 'r' to autoRotate, 'f' fullscreen, 'g' hide text\nfps: " + ofToString(ofGetFrameRate())  + "\niteration number "+ ofToString(walkers[0].steps.size()), 10, 10);
     }
     
 }
@@ -158,11 +161,13 @@ walker::walker(){ // constructor
     staggerSize =60; // set how far to stagger when we add staggers to the walk of points
     ofVec3f new3dpoint(ofRandom(-staggerSize, staggerSize),ofRandom(-staggerSize, staggerSize),ofRandom(-staggerSize, staggerSize));
     steps.push_back(new3dpoint);
-    verticalMotion = 0.0;
+    verticalMotion = 0.0f;
     maxLineWidth =10;
     lineWidth.push_back(5);
-    walkerColor = ofColor(ofRandom(255), ofRandom(255), ofRandom(255), 200);
+    walkerColor = ofColor(ofRandom(255), ofRandom(255), ofRandom(255), 100);
     mesh.setMode(OF_PRIMITIVE_TRIANGLE_STRIP);
+    // mesh.setMode(OF_PRIMITIVE_TRIANGLES);
+
 }
 
 //--------------------------------------------------------------
@@ -175,7 +180,7 @@ void walker::addStagger(){
     // generate a new small step/stagger that is within +/- our staggerSize distance of the last step
     ofVec3f lastStep = steps[steps.size()-1];
     
-    //stochastic random walk
+    // stochastic random walk
     //ofVec3f newStep(lastStep.x + ofRandom(-staggerSize, staggerSize), lastStep.y + ofRandom(-staggerSize, staggerSize), lastStep.z + ofRandom(-staggerSize, staggerSize  ) + verticalMotion ); // make a new vec2f object and add x,y, z value to it + vector size to give passage in time direction
     
     // perlin noise walk
@@ -186,7 +191,6 @@ void walker::addStagger(){
     lineWidth.push_back(ofRandom(maxLineWidth));
     
     //   mesh based line draw - elements from mouse draw oF example
-    
     //get the direction from one to the next.
     //the ribbon should fan out from this direction
     ofVec3f direction = (newStep - lastStep);
@@ -206,7 +210,8 @@ void walker::addStagger(){
     //the longer the distance, the narrower the line.
     //this makes it look a bit like brush strokes
     // float thickness = ofMap(distance, 0, 60, 10, 2, true);
-    float thickness = ofRandom(maxLineWidth);
+    // float thickness = ofRandom(maxLineWidth);
+    float thickness = ofNoise(lastStep.x) * maxLineWidth;
     //calculate the points to the left and to the right
     //by extending the current point in the direction of left/right by the length
     ofVec3f leftPoint = lastStep+toTheLeft*thickness;

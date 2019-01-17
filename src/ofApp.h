@@ -17,7 +17,7 @@ class walker{
     
 public:
     
-    int staggerSize, verticalMotion, maxLineWidth;
+    float staggerSize, verticalMotion, maxLineWidth;
     ofColor walkerColor;
     vector<ofVec3f> steps;
     vector<int> lineWidth;
