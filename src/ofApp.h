@@ -45,5 +45,6 @@ public:
     float rotAngle;
     bool b_drawGui, b_addstagger, b_autoRotate;
     ofEasyCam cam;
+    ofLight light;
 };
 
