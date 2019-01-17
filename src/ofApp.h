@@ -18,13 +18,20 @@ class walker{
 public:
     
     float staggerSize, verticalMotion, maxLineWidth;
-    ofColor walkerColor;
+    ofColor color;
     vector<ofVec3f> steps;
     vector<int> lineWidth;
     ofMesh mesh;
     walker(); // constructor
     ~walker(); // destructor
     void addStagger();
+    
+    // for building rings
+    float pie, radius, tubeHeightStep;
+    int tubeMeshRes, tubeHeight, randomKey;
+    
+    void triangulateMesh();
+    void addRing();
 };
 
 class ofApp : public ofBaseApp{
@@ -50,5 +57,7 @@ public:
     
     int focalDist, focalRange;
     ofxDOF depthOfField;
+    
+    
 };
 

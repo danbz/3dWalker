@@ -14,7 +14,7 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    numOfWalkers = 1;
+    numOfWalkers = 5;
     b_drawGui = true; // BOOLEAN (on or off) variable to indicate whether or not to show the gui display
     ofSetBackgroundColor(0, 0, 0);
     b_autoRotate = b_addstagger =  false;
@@ -28,7 +28,7 @@ void ofApp::setup(){
     }
     
     // set DOF parameters
-
+    
     depthOfField.setup(ofGetWidth(), ofGetHeight());
     focalDist = 200;
     focalRange = 200;
@@ -53,17 +53,17 @@ void ofApp::draw(){
     ofEnableBlendMode(OF_BLENDMODE_ALPHA);
     ofColor wfColor(50,50,50,255);
     depthOfField.begin();
-
+    
     
     cam.begin(); // begin using our easyCam objectfor 3D viewing
     // light.enable();
     ofPushMatrix();
     ofRotateYDeg(rotAngle);
     for (int i=0; i<walkers.size();i++){ // iterate though all the values in our vector of steps/points
-        ofSetColor(walkers[i].walkerColor);
+        ofSetColor(walkers[i].color);
         walkers[i].mesh.draw();
         
-        ofSetColor(walkers[i].walkerColor + wfColor);
+        ofSetColor(walkers[i].color + wfColor);
         walkers[i].mesh.drawWireframe();
     }
     ofPopMatrix();
@@ -102,7 +102,7 @@ void ofApp::keyPressed(int key){
         case 'f':
             ofToggleFullscreen(); // toggle full screen display
             depthOfField.setup(ofGetWidth(), ofGetHeight());
-
+            
             break;
             
         case 'g':
@@ -158,16 +158,24 @@ void ofApp::mouseReleased(int x, int y, int button){
 
 //--------------------------------------------------------------
 walker::walker(){ // constructor
-    staggerSize =60; // set how far to stagger when we add staggers to the walk of points
+    staggerSize =40; // set how far to stagger when we add staggers to the walk of points
     ofVec3f new3dpoint(ofRandom(-staggerSize, staggerSize),ofRandom(-staggerSize, staggerSize),ofRandom(-staggerSize, staggerSize));
     steps.push_back(new3dpoint);
     verticalMotion = 0.0f;
-    maxLineWidth =10;
+    maxLineWidth =20;
     lineWidth.push_back(5);
-    walkerColor = ofColor(ofRandom(255), ofRandom(255), ofRandom(255), 100);
+    color = ofColor(ofRandom(255), ofRandom(255), ofRandom(255), 100);
     mesh.setMode(OF_PRIMITIVE_TRIANGLE_STRIP);
     // mesh.setMode(OF_PRIMITIVE_TRIANGLES);
-
+    randomKey = ofRandom( ofGetElapsedTimef() );
+    // for building rings
+    
+    pie = 3.14159;
+    tubeMeshRes = 36;
+    radius = 40.0;
+    tubeHeight = 0;
+    tubeHeightStep = (1.0 * pie * radius) / tubeMeshRes ;
+    
 }
 
 //--------------------------------------------------------------
@@ -184,8 +192,15 @@ void walker::addStagger(){
     //ofVec3f newStep(lastStep.x + ofRandom(-staggerSize, staggerSize), lastStep.y + ofRandom(-staggerSize, staggerSize), lastStep.z + ofRandom(-staggerSize, staggerSize  ) + verticalMotion ); // make a new vec2f object and add x,y, z value to it + vector size to give passage in time direction
     
     // perlin noise walk
-     ofVec3f newStep(lastStep.x + (ofNoise(lastStep.x)-0.5f) * staggerSize, lastStep.y + (ofNoise(lastStep.y)-0.5f) * staggerSize, lastStep.z + (ofNoise(lastStep.z)-0.5f + verticalMotion)*staggerSize ); // make a new vec2f object and add x,y, z value to it + vector size to give passage in time direction
+    ofVec3f newStep(lastStep.x + (ofNoise(lastStep.x)-0.5f) * staggerSize, lastStep.y + (ofNoise(lastStep.y)-0.5f) * staggerSize, lastStep.z + (ofNoise(lastStep.z)-0.5f + verticalMotion)*staggerSize ); // make a new vec2f object and add x,y, z value to it + vector size to give passage in time direction
     
+    // time noise - generate a noisy 3d position over time
+    float t = randomKey + ( ofGetElapsedTimef()) * 5;
+    newStep.x = ofSignedNoise(t, 0, 0);
+    newStep.y = ofSignedNoise(0, t, 0);
+    newStep.z = ofSignedNoise(0, 0, t);
+    newStep *= ofRandom(staggerSize); // scale from -1,+1 range to -400,+400
+    newStep += lastStep;
     
     steps.push_back(newStep); // add a new step to the end of our vector of steps
     lineWidth.push_back(ofRandom(maxLineWidth));
@@ -206,20 +221,99 @@ void walker::addStagger(){
     ofVec3f toTheLeft = unitDirection.getRotated(-90, ofVec3f(0,0,1));
     ofVec3f toTheRight = unitDirection.getRotated(90, ofVec3f(0,0,1));
     
-    //use the map function to determine the distance.
-    //the longer the distance, the narrower the line.
-    //this makes it look a bit like brush strokes
-    // float thickness = ofMap(distance, 0, 60, 10, 2, true);
-    // float thickness = ofRandom(maxLineWidth);
     float thickness = ofNoise(lastStep.x) * maxLineWidth;
     //calculate the points to the left and to the right
     //by extending the current point in the direction of left/right by the length
     ofVec3f leftPoint = lastStep+toTheLeft*thickness;
     ofVec3f rightPoint = lastStep+toTheRight*thickness;
     
-    //add these points to the triangle strip
+    // addRing();
+    // add these points to the triangle strip
     mesh.addVertex(ofVec3f(leftPoint.x, leftPoint.y, leftPoint.z));
     mesh.addVertex(ofVec3f(rightPoint.x, rightPoint.y, rightPoint.z));
     
+    
+    
+}
+
+void walker::addRing() {
+    // add a ring of vertices to our mesh
+    int i,x,y,z, w, h, left, right;
+    float angle =0.0;
+    float p;
+    
+    ofVec3f radPoint;
+    ofColor col;
+    z = 0;
+    left = w / 4 * 1;
+    right = w / 4 * 3;
+    
+    radPoint.set(ofVec3f( 10,0,tubeHeight ));
+    //ofPixels & pixels = video.getPixels();
+    x=100; // guess a value here for now.... is a magic number so really bad practice!
+    //x = video.getWidth() / 4 * 3;
+    int stepAngle = 360 / tubeMeshRes ;
+    for (p =0; p < 2 * pie; p+= 2 * pie / tubeMeshRes) {
+        int input = ofMap(p, 0, 2 * pie, 0, 50);
+        // radius = fftSmoothed[input] *  200;
+        
+        angle = stepAngle * p;
+        radPoint = ofVec3f(  radius * cos( angle ), radius * sin( angle ), 0 - tubeHeight * tubeHeightStep);
+        //radPoint = ofVec3f(  p, angle, tubeHeight * 10 ); // make a straight sheet of points
+        mesh.addVertex(radPoint);
+        
+        
+        if (z < tubeMeshRes/2) {         // extract appropriate color from video
+            x = left; //left hand side pixels
+            y = h / tubeMeshRes * (z * 2);
+        } else {
+            x = right; //right hand side pixels
+            y = h * 2 - (h / tubeMeshRes * (z * 2) ) ;
+        }
+        z++;
+        mesh.addColor(color);
+    }
+    //  triangulateMesh();
+    tubeHeight ++;
+    
+    //    if (tubeHeight >100){
+    //        int i =0;
+    //        for (p =0; p < 2 * pie; p+= 2 * pie / tubeMeshRes) {
+    //            tubeMesh.removeVertex(i);
+    //            i++;
+    //        }
+    //    }
+}
+
+void walker::triangulateMesh(  ){
+    int meshW = tubeMeshRes ;
+    int meshH = tubeHeight;
+    int step =1;
+    int width = meshW;
+    int height = meshH;
+    int index =0;
+    ofVec3f v3, v3b;
+    
+    
+    for (int y = 0; y<height-step-1; y+= step){ // triangulate mesh
+        for (int x=0; x<width-step-1; x+= step){
+            v3.set(0,0,0);
+            //              if ((mesh.getVertex(x+y*meshW))==v3 or (mesh.getVertex((x+1)+y*(meshW)))==v3 or (mesh.getVertex(x+(y+1)*meshW)==v3)){
+            //              } else {
+            v3 = mesh.getVertex(index);
+            v3b = mesh.getVertex(index+1);
+            index ++;
+            // if (abs (v3.z-v3b.z)>0 && abs(v3.z-v3b.z) < volcaRenderer.triLength){
+            //cout <<v3.z - v3b.z << endl;
+            mesh.addIndex(x+y*meshW);               // 0
+            mesh.addIndex((x+1)+y*meshW);           // 1
+            mesh.addIndex(x+(y+1)*meshW);           // 10
+            // }
+            mesh.addIndex((x+1)+y*meshW);           // 1
+            mesh.addIndex((x+1)+(y+1)*meshW);       // 11
+            mesh.addIndex(x+(y+1)*meshW);           // 10
+            // }
+        }
+    }
     
 }
