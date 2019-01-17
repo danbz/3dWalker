@@ -11,7 +11,7 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    numOfWalkers = 12;
+    numOfWalkers = 2;
     b_drawGui = true; // BOOLEAN (on or off) variable to indicate whether or not to show the gui display
     ofSetBackgroundColor(0, 0, 0);
     b_autoRotate = b_addstagger =  false;
@@ -52,7 +52,9 @@ void ofApp::draw(){
         for (int j=0; j<walkers[i].steps.size();j++){
             curStep = walkers[i].steps[j];
             ofSetLineWidth(walkers[i].lineWidth[j]);
+            if (j>0){
             ofDrawLine(prevStep, curStep); // draw a line between the last point and the current point
+            }
             prevStep=curStep;
             
         }
@@ -120,10 +122,10 @@ walker::walker(){ // constructor
     ofVec3f new3dpoint(0,0,0);
     steps.push_back(new3dpoint);
     staggerSize =2; // set how far to stagger when we add staggers to the walk of points
-    verticalMotion = 0.1;
+    verticalMotion = 0.0;
     maxLineWidth =40;
     lineWidth.push_back(5);
-    walkerColor = ofColor(ofRandom(255), ofRandom(255), ofRandom(255), 100);
+    walkerColor = ofColor(ofRandom(255), ofRandom(255), ofRandom(255), 50);
 }
 
 //--------------------------------------------------------------
