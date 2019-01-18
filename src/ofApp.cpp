@@ -50,8 +50,10 @@ void ofApp::draw(){
     ofEnableDepthTest();
     ofEnableBlendMode(OF_BLENDMODE_ALPHA);
     ofColor wfColor(50,50,50,255);
-   // light.enable();
+    glPointSize(5);
 
+   // light.enable();
+    
     depthOfField.begin();
     
     cam.begin(); // begin using our easyCam objectfor 3D viewing
@@ -59,10 +61,12 @@ void ofApp::draw(){
     ofRotateYDeg(rotAngle);
     for (int i=0; i<walkers.size();i++){ // iterate though all the values in our vector of steps/points
         ofSetColor(walkers[i].color);
-        walkers[i].mesh.draw();
+       // walkers[i].mesh.draw();
         
         ofSetColor(walkers[i].color + wfColor);
         walkers[i].mesh.drawWireframe();
+        walkers[i].mesh.drawVertices();
+
     }
     ofPopMatrix();
     cam.end(); // end using our easyCam object
