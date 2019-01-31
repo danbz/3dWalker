@@ -51,7 +51,7 @@ public:
     vector<walker> walkers;
     int numOfWalkers;
     float rotAngle;
-    bool b_drawGui, b_addstagger, b_autoRotate;
+    bool b_drawGui, b_addstagger, b_autoRotate, b_renderMesh;
     ofEasyCam cam;
     ofLight light;
     

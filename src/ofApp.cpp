@@ -14,7 +14,7 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    numOfWalkers = 12;
+    numOfWalkers = 1;
     b_drawGui = true; // boolean variable to indicate whether or not to show the gui display
     ofSetBackgroundColor(0, 0, 0);
     b_autoRotate = b_addstagger =  false;
@@ -25,7 +25,7 @@ void ofApp::setup(){
         walker newWalker; // create a walker and push into our vector of walkers
         walkers.push_back(newWalker);
     }
-
+    
     // set DOF parameters
     depthOfField.setup(ofGetWidth(), ofGetHeight());
     focalDist = 200;
@@ -51,8 +51,8 @@ void ofApp::draw(){
     ofEnableBlendMode(OF_BLENDMODE_ALPHA);
     ofColor wfColor(50,50,50,255);
     glPointSize(5);
-
-   // light.enable();
+    
+    // light.enable();
     
     depthOfField.begin();
     
@@ -61,19 +61,23 @@ void ofApp::draw(){
     ofRotateYDeg(rotAngle);
     for (int i=0; i<walkers.size();i++){ // iterate though all the values in our vector of steps/points
         ofSetColor(walkers[i].color);
-       // walkers[i].mesh.draw();
-        
-        ofSetColor(walkers[i].color + wfColor);
-        walkers[i].mesh.drawWireframe();
-        walkers[i].mesh.drawVertices();
-
+        if (b_renderMesh) {
+            walkers[i].mesh.draw();
+            
+            ofSetColor(walkers[i].color + wfColor);
+            walkers[i].mesh.drawWireframe();
+        } else {
+            //  ofSetColor(walkers[i].color + wfColor);
+            walkers[i].mesh.drawWireframe();
+            walkers[i].mesh.drawVertices();
+        }
     }
     ofPopMatrix();
     cam.end(); // end using our easyCam object
     
     depthOfField.end();
-   // light.disable();
-
+    // light.disable();
+    
     if(ofGetKeyPressed(' ')){
         depthOfField.drawFocusAssist(0, 0);
     }
@@ -83,7 +87,7 @@ void ofApp::draw(){
     
     ofSetColor(150, 150, 150);
     if (b_drawGui){ // check if we should show the onscreen gui/text
-        ofDrawBitmapString(" 'w' to toggle walks, 'r' to autoRotate, 'f' fullscreen, 'g' hide text\nfps: " + ofToString(ofGetFrameRate())  + "\niteration number "+ ofToString(walkers[0].steps.size()), 10, 10);
+        ofDrawBitmapString(" 'w' to toggle walks, 'r' to autoRotate, 'f' fullscreen, 'g' hide text, 'm' toggle mesh/pointcloud render\nfps: " + ofToString(ofGetFrameRate())  + "\niteration number "+ ofToString(walkers[0].steps.size()), 10, 10);
     }
     
 }
@@ -130,6 +134,10 @@ void ofApp::keyPressed(int key){
             depthOfField.setFocalRange( focalRange );
             break;
             
+        case 'm':
+            b_renderMesh = !b_renderMesh;
+            break;
+            
     }
 }
 
@@ -171,7 +179,7 @@ walker::walker(){ // constructor
     // mesh.setMode(OF_PRIMITIVE_TRIANGLES);
     randomKey = ofRandom( 1000 );
     twistiness = 3; // scale for step through perlin noise space - 0.1-5.0 is good, more = more twisty
-
+    
     // for building rings
     pie = 3.14159;
     tubeMeshRes = 36;
@@ -236,11 +244,11 @@ void walker::addStagger(){
     mesh.addVertex(ofVec3f(leftPoint.x, leftPoint.y, leftPoint.z));
     mesh.addVertex(ofVec3f(rightPoint.x, rightPoint.y, rightPoint.z));
     
-//    if (mesh.getVertices().size() >500){ // limit the length of a walker line to 500 points
-//        mesh.removeVertex(0);
-//        mesh.removeVertex(0);
-//    }
-   
+    //    if (mesh.getVertices().size() >500){ // limit the length of a walker line to 500 points
+    //        mesh.removeVertex(0);
+    //        mesh.removeVertex(0);
+    //    }
+    
 }
 
 void walker::addRing() {
