@@ -14,7 +14,7 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-    numOfWalkers = 1;
+    numOfWalkers = 3;
     b_drawGui = true; // boolean variable to indicate whether or not to show the gui display
     ofSetBackgroundColor(0, 0, 0);
     b_autoRotate = b_addstagger =  false;
@@ -49,7 +49,7 @@ void ofApp::draw(){
     ofVec3f curStep, prevStep(0.0,0.0,0.0);
     ofEnableDepthTest();
     ofEnableBlendMode(OF_BLENDMODE_ALPHA);
-    ofColor wfColor(50,50,50,255);
+    ofColor wfColor(50,50,50,150);
     glPointSize(5);
     
     // light.enable();
@@ -76,7 +76,7 @@ void ofApp::draw(){
     cam.end(); // end using our easyCam object
     
     depthOfField.end();
-    // light.disable();
+    //  light.disable();
     
     if(ofGetKeyPressed(' ')){
         depthOfField.drawFocusAssist(0, 0);
@@ -108,7 +108,6 @@ void ofApp::keyPressed(int key){
         case 'f':
             ofToggleFullscreen(); // toggle full screen display
             depthOfField.setup(ofGetWidth(), ofGetHeight());
-            
             break;
             
         case 'g':
@@ -174,11 +173,11 @@ walker::walker(){ // constructor
     verticalMotion = 0.0f;
     maxLineWidth =40;
     lineWidth.push_back(5);
-    color = ofColor(ofRandom(255), ofRandom(255), ofRandom(255), 100);
-    mesh.setMode(OF_PRIMITIVE_TRIANGLE_STRIP);
-    // mesh.setMode(OF_PRIMITIVE_TRIANGLES);
+    color = ofColor(ofRandom(255), ofRandom(255), ofRandom(255), 150);
+    //mesh.setMode(OF_PRIMITIVE_TRIANGLE_STRIP);
+    mesh.setMode(OF_PRIMITIVE_TRIANGLES);
     randomKey = ofRandom( 1000 );
-    twistiness = 3; // scale for step through perlin noise space - 0.1-5.0 is good, more = more twisty
+    twistiness = 1; // scale for step through perlin noise space - 0.1-5.0 is good, more = more twisty
     
     // for building rings
     pie = 3.14159;
@@ -217,32 +216,87 @@ void walker::addStagger(){
     steps.push_back(newStep); // add a new step to the end of our vector of steps
     lineWidth.push_back( ofNoise(randomKey +  ofGetElapsedTimef() ) * maxLineWidth);
     
-    //   mesh based line draw - elements from mouse draw oF example
-    //get the direction from one to the next.
-    //the ribbon should fan out from this direction
+    // mesh based line draw - elements from mouse draw oF example
+    // get the direction from one to the next. the ribbon should fan out from this direction
     ofVec3f direction = (newStep - lastStep);
     
-    //get the distance from one point to the next
+    // get the distance from one point to the next
     float distance = direction.length();
     
-    //get the normalized direction. normalized vectors always have a length of one
-    //and are really useful for representing directions as opposed to something with length
+    // get the normalized direction. normalized vectors always have a length of one
+    // and are really useful for representing directions as opposed to something with length
     ofVec3f unitDirection = direction.getNormalized();
     
-    //find both directions to the left and to the right
+    // find both directions to the left and to the right
     ofVec3f toTheLeft = unitDirection.getRotated(-90, ofVec3f(0,0,1));
     ofVec3f toTheRight = unitDirection.getRotated(90, ofVec3f(0,0,1));
     
+    // find both directions to the left and to the right
+    ofVec3f toTheTop = unitDirection.getRotated(0, ofVec3f(0,0,1));
+    ofVec3f toTheBtm = unitDirection.getRotated(180, ofVec3f(0,0,1));
+    
     float thickness = ofNoise(randomKey +  ofGetElapsedTimef() * twistiness) * maxLineWidth;
-    //calculate the points to the left and to the right
-    //by extending the current point in the direction of left/right by the length
+    thickness = 50;
+    // calculate the points to the left and to the right
+    // by extending the current point in the direction of left/right by the length
     ofVec3f leftPoint = lastStep+toTheLeft*thickness;
     ofVec3f rightPoint = lastStep+toTheRight*thickness;
     
+    ofVec3f topPoint = lastStep+toTheTop*thickness;
+    ofVec3f btmPoint = lastStep+toTheBtm*thickness;
     // addRing();
     // add these points to the triangle strip
-    mesh.addVertex(ofVec3f(leftPoint.x, leftPoint.y, leftPoint.z));
-    mesh.addVertex(ofVec3f(rightPoint.x, rightPoint.y, rightPoint.z));
+    // fix the winding in the vertex list !
+    
+    mesh.addVertex(ofVec3f(topPoint));
+    mesh.addVertex(ofVec3f(rightPoint));
+    mesh.addVertex(ofVec3f(btmPoint));
+    mesh.addVertex(ofVec3f(leftPoint));
+    
+    
+    
+    
+    
+    // triangulate mesh
+    int indexAmnt = mesh.getNumVertices();
+    if (indexAmnt >4) {
+        
+        
+        
+        // top
+        mesh.addIndex(indexAmnt -7);
+        mesh.addIndex(indexAmnt -6) ;
+        mesh.addIndex(indexAmnt-2);
+        
+        mesh.addIndex(indexAmnt -7);
+        mesh.addIndex( indexAmnt -2);
+        mesh.addIndex( indexAmnt -3);
+        
+        //        // right
+                mesh.addIndex(indexAmnt -6);
+                mesh.addIndex( indexAmnt -5);
+                mesh.addIndex(indexAmnt-1);
+        
+                mesh.addIndex(indexAmnt -6);
+                mesh.addIndex( indexAmnt -1);
+                mesh.addIndex( indexAmnt -2);
+        // btm
+        mesh.addIndex(indexAmnt -5);
+        mesh.addIndex( indexAmnt -4);
+        mesh.addIndex(  indexAmnt);
+        
+        mesh.addIndex(indexAmnt -5);
+        mesh.addIndex( indexAmnt );
+        mesh.addIndex( indexAmnt -1);
+        // left
+                mesh.addIndex(indexAmnt -4);
+                mesh.addIndex( indexAmnt -7);
+                mesh.addIndex(  indexAmnt-3);
+        
+                mesh.addIndex(indexAmnt -4);
+                mesh.addIndex( indexAmnt -3);
+                mesh.addIndex(indexAmnt );
+    }
     
     //    if (mesh.getVertices().size() >500){ // limit the length of a walker line to 500 points
     //        mesh.removeVertex(0);
